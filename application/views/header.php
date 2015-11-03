@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Login &bull; Template</title>
+	<title>Mahuni</title>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="<?= base_url('assets/css/bootstrap.min.css')?>" />
@@ -19,7 +19,7 @@
 					<span class="icon-bar"></span>
 					<span class="icon-bar"></span>
 				</button>
-				<a class="navbar-brand" href="<?= base_url();?>">Template</a>
+				<a class="navbar-brand" href="<?= base_url();?>">Mahuni.com</a>
 			</div>
 
 			<!-- Collect the nav links, forms, and other content for toggling -->
