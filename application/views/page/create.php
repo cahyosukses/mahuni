@@ -284,7 +284,19 @@ $(document).ready(function(){
         // prepend siap untuk upload
         var s3path = 'https://s3-ap-southeast-1.amazonaws.com/mahuni/'+file.name.split(' ').join('+');
 
-		var reader = new FileReader();
+		// var reader = new FileReader();
+
+		var src = window.URL.createObjectURL(file);
+		if(file.name.length > 13) var filename = file.name.substr(0,10)+'...';
+		else var filename = file.name;
+
+		var upload_id = 'uploader'+(new Date).getTime();
+
+		var img = '<div id="'+upload_id+'" class="icon uploading" style="background: #ddd url('+src+') center center no-repeat; background-size: 100%; opacity: 0.5;" data-s3=""><p>'+filename+'</p> <img src="'+base_url('assets/img/ellipsis.gif')+'" style="margin-top: -180px;"/></div>';
+
+		$('.files-icon').prepend(img);
+
+
 
         // if (file) {
         //     results.innerHTML = '';
@@ -307,6 +319,10 @@ $(document).ready(function(){
         // } else {
         //     results.innerHTML = 'Nothing to upload.';
         // }
+
+        // buang spinner, letak s3 path dan opacity full
+        $('#'+upload_id+' img').remove();
+        $('#'+upload_id).css('opacity', 1).attr('data-s3', s3path).removeClass('uploading');
      });
     // }, false);
 
