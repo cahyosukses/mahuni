@@ -17,6 +17,11 @@ class Page extends CI_Controller {
 		$this->load->view('page/create');
 	}
 
+	public function upload_file(){
+		echo 'yihaaa!';
+		dumper($_FILES);
+	}
+
 	// public function list(){
 
 	// }

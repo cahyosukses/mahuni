@@ -31,6 +31,7 @@
 					<div id="edit_template">
 							<h1 textedit>Ini adalah tajuk Sekadar Ada</h1>
 							<p textedit>Ini pula cuma details pendek pun sekadar ada</p>
+							<img imgedit src="http://placehold.it/500x200?text=img"/>
 					</div>
 				</div>
 
@@ -40,30 +41,96 @@
 		</div></div>
 	</div>
 
+
+<!-- Modal -->
+<div class="modal fade" id="filemanager" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">File Manager</h4>
+      </div>
+      <div class="modal-body">
+		<div class="hiddenfile">
+			<input name="upload" type="file" id="fileinput"/>
+		</div>
+      	<div class="upload-list"></div>
+        <div class="files-icon">
+        	<div class="icon" style="background: #ddd url(http://s3-ap-southeast-1.amazonaws.com/esdownloadcentre/stu_media/demo003/law-of-diffusion.png) center center no-repeat; background-size: 100%;" data-s3="http://s3-ap-southeast-1.amazonaws.com/esdownloadcentre/stu_media/demo003/law-of-diffusion.png"><p>filename</p></div>
+        </div>
+        <!-- 
+        <div class="files-list">
+        	<table class="table table-condensed table-bordered-table-striped">
+        	<thead>
+        		<tr><th>Filename</th><th>Action</th></tr>
+        	</thead>
+        	</table>
+        </div> -->
+      </div>
+      <div class="modal-footer">
+        <!-- <button type="button" class="btn btn-default">Upload</button> -->
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="fileupload">Upload</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <style>
+
+.files-icon{
+	display: inline-block;
+}
+
+.hiddenfile {
+ width: 0px;
+ height: 0px;
+ overflow: hidden;
+}
+
+.icon{
+	display: inline-block;
+	width: 100px;
+	height: 130px;
+	border-bottom: 1px #444 solid;
+	text-align: center;
+	cursor: pointer;
+	vertical-align: middle;
+	margin-right: 10px;
+}
+
+.icon p{
+	margin-top: 110px;
+	background: #444;
+	color: #fff;
+}
+
 #edit_template{
 	border: 1px #aaa dashed;
 	padding: 15px;
 	border-radius: 6px;
 }
 
-[textedit]{
+[textedit],[imgedit]{
 	cursor: pointer;
 }
 
-#edit_buttons{
+#edit_buttons, #img_buttons{
 	background: #00baff;
-	font-size: 16px;
+	font-size: 12px;
 	float:right;
 	color: #fff;
+	padding-bottom: 1px;
+	padding-top: 1px;
 }
 
-#edit_buttons i{
+#edit_buttons i, #img_buttons i{
 	padding: 5px;
 	cursor: pointer;
+	margin-top: -2px;
 }
 
-#edit_buttons i:hover{
+#edit_buttons i:hover, #img_buttons i:hover{
 	background: #ff005a;
 }
 </style>
@@ -71,9 +138,12 @@
 
 <script>
 
+var current_border = {};
+
 $(document).ready(function(){
 
 	// editor codes
+	$('#filemanager').modal('show');
 
 	$('#edit_template').hide();
 	$('#select_template img.template').on('click', function(){
@@ -85,23 +155,44 @@ $(document).ready(function(){
 		});
 	});
 
-	var current_border = {};
 
-	$('#edit_template').on('mouseenter', '[textedit]', function(){
+	$('#edit_template').on('mouseenter', '[textedit],[imgedit]', function(){
 		current_border = border_info($(this));
 		
 		hover_border($(this));
 		// console.log($(this).html());
 	});
 
-	$('#edit_template').on('mouseleave', '[textedit]', function(){
+	$('#edit_template').on('mouseleave', '[textedit],[imgedit]', function(){
 		
 		// console.log($(this).html());
 		old_border($(this), current_border);
 	});
 
+	$('#edit_template').on('click', '[imgedit]', function(){
+		clear_edit();
+
+		var pos = $(this).position();
+		var width = $(this).width();
+		var height = $(this).height();
+
+		// var imgupload = '<div class="imgeditor" style="width:'+width+'px; height: '+height+'px; background: rgba(255, 255, 255, 0.5); position: absolute; float: left; z-index: 150; top:'+pos['top']+'px; left:'+pos['left']+'px; text-align: center; "><span class="btn btn-default">upload / select</span></div>';
+
+		// $(this).parent().append(imgupload);
+
+		var buttons = '<span id="img_buttons" style="z-index: 150; position: absolute; top: '+(pos['top']+height+2)+'px; left: '+(pos['left']+width - 86)+'px;"><i class="glyphicon glyphicon-ok"></i><i class="glyphicon glyphicon-open" data-toggle="modal" data-target="#mediamanager"></i><i class="glyphicon glyphicon-duplicate"></i><i class="glyphicon glyphicon-trash"></span>';
+
+		$(this).parent().append(buttons);
+
+
+		$(this).removeAttr('imgedit');
+		$(this).attr('currentedit','');
+	});
+
 	var ori_text = '';
 	$('#edit_template').on('click', '[textedit]', function(){
+		// tutup semua current edit yang lain
+		clear_edit();
 
 		ori_text = $(this).html();
 
@@ -116,35 +207,158 @@ $(document).ready(function(){
 		$(this).html(html);
 
 		// add small button to save - delete - copy
-		$(this).append('<span id="edit_buttons"><i class="glyphicon glyphicon-ok"></i><i class="glyphicon glyphicon-trash"></span>');
+		$(this).append('<span id="edit_buttons"><i class="glyphicon glyphicon-ok"></i><i class="glyphicon glyphicon-duplicate"></i><i class="glyphicon glyphicon-trash"></span>');
 
 		$(this).removeAttr('textedit');
 		$(this).attr('currentedit','');
 	});
 
 	$('#edit_template').on('click', '#edit_buttons i', function(){
-		console.log($(this).hasClass('glyphicon-ok'));
-		var new_text = '';
-		
-		var element = $(this).parent().parent();
-		if($(element).is('p')){
-			new_text = $(element).find('textarea').val();
-		}else{
-			new_text = $(element).find('input').val();
+
+		// kalau ok, save the string
+		if($(this).hasClass('glyphicon-ok')){
+			var new_text = '';
+			
+			var element = $(this).parent().parent();
+			if($(element).is('p')){
+				new_text = $(element).find('textarea').val();
+			}else{
+				new_text = $(element).find('input').val();
+			}
+			
+
+			// $(this).parent().parent().html(new_text);
+			
+			$(element).html(new_text);
+			$(element).removeAttr('currentedit');
+			$(element).attr('textedit','');
+			old_border(element, current_border);
 		}
 
-		// $(this).parent().parent().html(new_text);
+	});
+
+	$('#edit_template').on('click', '#img_buttons i', function(){
+
+		if($(this).hasClass('glyphicon-ok')){
+			$('#img_buttons').remove();
+
+			old_border( $('[currentedit]') , current_border);
+
+			$('[currentedit]').attr('imgedit','').removeAttr('currentedit');
+		}
+
+	});
+
+
+	// upload files
+	$('#fileupload').on('click', function(){
+		$('#fileinput').focus().trigger('click');
+	});
+
+	$('#fileinput').on('change', function(){
 		
-		$(element).html(new_text);
-		$(element).removeAttr('currentedit');
-		$(element).attr('textedit','');
-		old_border(element, current_border);
+		var reader = new FileReader();
+	    reader.onload = function(){
+	      // var output = document.getElementById('output');
+	      // output.src = reader.result;
+	      // console.log(reader);
+	      var fileinput = document.getElementById('fileinput');
+	      var file = fileinput.files[0];
+		  // var filename = fileinput.files[0].name;
+
+		  // console.log(file);
+
+		  // check kat type, hanya image, pdf dan zip dengan saiz kurang daripada 10mb sahaja diterima untuk upload oi.
+
+	      var src = reader.result;
+	      var img = '<div class="icon" style="background: rgba(0,0,0,0.5) url('+src+') center center no-repeat; background-size: 100%;" data-s3=""><p>'+file.name+'</p></div>';
+
+	      $('.files-icon').prepend(img);
+
+	      // upload it
+	      var formData = new FormData();
+	      formData.append('image', file);
+
+	      // console.log(formData);
+
+	      // $.ajax({
+	      // 			url:base_url('page/upload_file'),
+	      // 			data:formData,
+	      // 			contentType: false,
+	      // 			processData: false,
+	      // 			success: function(response){
+	      // 				console.log(response);
+	      // 			},
+	      // 		});
+
+			var oReq = new XMLHttpRequest();
+			oReq.open("POST", base_url('page/upload_file'), true);
+			oReq.onload = function(oEvent) {
+				if (oReq.status == 200) {
+				  console.log("Uploaded!");
+				  console.log(oReq.response);
+				} else {
+				  console.log("Error " + oReq.status + " occurred when trying to upload your file.<br \/>");
+				}
+			};
+			oReq.onprogress = function(oEvent){
+				console.log(oReq);
+			}
+
+			oReq.send(formData);
+			ev.preventDefault();
+	    };
+	    
+	    reader.readAsDataURL(event.target.files[0]);
+	    console.log(reader.result);
 	});
 
 	//// end editor codes
 
 });
 
+
+function base_url(uri){
+	return 'http://mahuni.dev/'+uri;
+}
+
+function clear_edit(){
+	// console.log(current_border);
+		that = $('[currentedit]');
+
+		if($(that).is('img')){
+			console.log('clear for img');
+			$('#img_buttons').remove();
+
+			old_border( that , current_border);
+
+			$(that).attr('imgedit','').removeAttr('currentedit');
+
+		}else if($(that).is('p')){
+			console.log('clear for p');
+			// just save the latest text. much easier as we
+			// can discard a 'memory' type of function
+			var latest = $('[currentedit] textarea').val();
+
+			$(that).html(latest);
+
+			$(that).attr('textedit','').removeAttr('currentedit');
+
+			old_border($(that), current_border);
+		}else{
+
+			console.log('clear for others');
+			// console.log($('[currentedit]'));
+
+			var latest = $('[currentedit] input').val();
+
+			$(that).html(latest);
+
+			$(that).attr('textedit','').removeAttr('currentedit');
+
+			old_border($(that), current_border);
+		}
+}
 
 function hover_border(node){
 
