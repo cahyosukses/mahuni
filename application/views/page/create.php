@@ -54,6 +54,7 @@
 		<div class="hiddenfile">
 			<input name="upload" type="file" id="fileinput"/>
 		</div>
+      	<div id="upload-result"></div>
       	<div class="upload-list"></div>
         <div class="files-icon">
         	<div class="icon" style="background: #ddd url(http://s3-ap-southeast-1.amazonaws.com/esdownloadcentre/stu_media/demo003/law-of-diffusion.png) center center no-repeat; background-size: 100%;" data-s3="http://s3-ap-southeast-1.amazonaws.com/esdownloadcentre/stu_media/demo003/law-of-diffusion.png"><p>filename</p></div>
@@ -135,7 +136,7 @@
 }
 </style>
 <?php $this->load->view('footer');?>
-
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
 <script>
 
 var current_border = {};
@@ -250,68 +251,148 @@ $(document).ready(function(){
 	});
 
 
-	// upload files
-	$('#fileupload').on('click', function(){
+	// upload directly to s3
+	AWS.config.region = 'ap-southeast-1'; // 1. Enter your region
+	// AWS.config.region = 'ap-northeast-1'; // 1. Enter your region
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+    	// AccountId: '236627574121', // your AWS account ID
+    	// RoleArn: 'arn:aws:s3:::mahuni',
+        // IdentityPoolId: 'ap-northeast-1:bb902914-84b2-4a04-af6e-a9694ad80715' // 2. Enter your identity pool
+    });
+    AWS.config.update({accessKeyId: 'AKIAI7F7WLD4DW6FQMXQ', secretAccessKey: 'r1uORHL2f9UFzv1pPhBgvDjWiMhuyyrNw1iYsdMN'});
+    AWS.config.credentials.get(function(err) {
+        if (err) console.log(err);
+        // console.log(AWS.config.credentials);
+    });
+    var bucketName = 'mahuni'; // Enter your bucket name
+    var bucket = new AWS.S3({
+        params: {
+            Bucket: bucketName
+        }
+    });
+    var fileChooser = document.getElementById('fileinput');
+    var results = document.getElementById('upload-result');
+    
+    // button.addEventListener('click', function() {
+    $('#fileupload').on('click', function(){
 		$('#fileinput').focus().trigger('click');
 	});
 
 	$('#fileinput').on('change', function(){
-		
+        var file = fileChooser.files[0];
+
+        // prepend siap untuk upload
+        var s3path = 'https://s3-ap-southeast-1.amazonaws.com/mahuni/'+file.name.split(' ').join('+');
+
 		var reader = new FileReader();
-	    reader.onload = function(){
-	      // var output = document.getElementById('output');
-	      // output.src = reader.result;
-	      // console.log(reader);
-	      var fileinput = document.getElementById('fileinput');
-	      var file = fileinput.files[0];
-		  // var filename = fileinput.files[0].name;
 
-		  // console.log(file);
+        // if (file) {
+        //     results.innerHTML = '';
+        //     var objKey = '' + file.name;
+        //     var params = {
+        //         Key: objKey,
+        //         ContentType: file.type,
+        //         Body: file,
+        //         ACL: 'public-read'
+        //     };
+        //     bucket.putObject(params, function(err, data) {
+        //         if (err) {
+        //             results.innerHTML = 'ERROR: ' + err;
+        //         } else {
+        //         	console.log(data);
+        //             // listObjs(); // this function will list all the files which has been uploaded
+        //             //here you can also add your code to update your database(MySQL, firebase whatever you are using)
+        //         }
+        //     });
+        // } else {
+        //     results.innerHTML = 'Nothing to upload.';
+        // }
+     });
+    // }, false);
 
-		  // check kat type, hanya image, pdf dan zip dengan saiz kurang daripada 10mb sahaja diterima untuk upload oi.
 
-	      var src = reader.result;
-	      var img = '<div class="icon" style="background: rgba(0,0,0,0.5) url('+src+') center center no-repeat; background-size: 100%;" data-s3=""><p>'+file.name+'</p></div>';
 
-	      $('.files-icon').prepend(img);
+    function listObjs() {
+        var prefix = 'testing';
+        bucket.listObjects({
+            Prefix: prefix
+        }, function(err, data) {
+            if (err) {
+                results.innerHTML = 'ERROR: ' + err;
+            } else {
+                var objKeys = "";
+                data.Contents.forEach(function(obj) {
+                    objKeys += obj.Key + "<br>";
+                });
+                results.innerHTML = objKeys;
+            }
+        });
+    }
 
-	      // upload it
-	      var formData = new FormData();
-	      formData.append('image', file);
 
-	      // console.log(formData);
+	// // upload files
+	// $('#fileupload').on('click', function(){
+	// 	$('#fileinput').focus().trigger('click');
+	// });
 
-	      // $.ajax({
-	      // 			url:base_url('page/upload_file'),
-	      // 			data:formData,
-	      // 			contentType: false,
-	      // 			processData: false,
-	      // 			success: function(response){
-	      // 				console.log(response);
-	      // 			},
-	      // 		});
+	// $('#fileinput').on('change', function(){
+		
+	// 	var reader = new FileReader();
+	//     reader.onload = function(){
+	//       // var output = document.getElementById('output');
+	//       // output.src = reader.result;
+	//       // console.log(reader);
+	//       var fileinput = document.getElementById('fileinput');
+	//       var file = fileinput.files[0];
+	// 	  // var filename = fileinput.files[0].name;
 
-			var oReq = new XMLHttpRequest();
-			oReq.open("POST", base_url('page/upload_file'), true);
-			oReq.onload = function(oEvent) {
-				if (oReq.status == 200) {
-				  console.log("Uploaded!");
-				  console.log(oReq.response);
-				} else {
-				  console.log("Error " + oReq.status + " occurred when trying to upload your file.<br \/>");
-				}
-			};
-			oReq.onprogress = function(oEvent){
-				console.log(oReq);
-			}
+	// 	  // console.log(file);
 
-			oReq.send(formData);
-			ev.preventDefault();
-	    };
+	// 	  // check kat type, hanya image, pdf dan zip dengan saiz kurang daripada 10mb sahaja diterima untuk upload oi.
+
+	//       var src = reader.result;
+	//       var img = '<div class="icon" style="background: rgba(0,0,0,0.5) url('+src+') center center no-repeat; background-size: 100%;" data-s3=""><p>'+file.name+'</p></div>';
+
+	//       $('.files-icon').prepend(img);
+
+	//       // upload it
+	//       var formData = new FormData();
+	//       formData.append('image', file);
+
+	//       // console.log(formData);
+
+	//       // $.ajax({
+	//       // 			url:base_url('page/upload_file'),
+	//       // 			data:formData,
+	//       // 			contentType: false,
+	//       // 			processData: false,
+	//       // 			success: function(response){
+	//       // 				console.log(response);
+	//       // 			},
+	//       // 		});
+
+	// 		var oReq = new XMLHttpRequest();
+	// 		oReq.open("POST", base_url('page/upload_file'), true);
+	// 		oReq.onload = function(oEvent) {
+	// 			if (oReq.status == 200) {
+	// 			  console.log("Uploaded!");
+	// 			  console.log(oReq.response);
+	// 			} else {
+	// 			  console.log("Error " + oReq.status + " occurred when trying to upload your file.<br \/>");
+	// 			}
+	// 		};
+			
+	// 		oReq.onprogress = function(oEvent){
+	// 			console.log(oReq);
+	// 		}
+
+	// 		oReq.send(formData);
+	// 		ev.preventDefault();
+	//     };
 	    
-	    reader.readAsDataURL(event.target.files[0]);
-	    console.log(reader.result);
-	});
+	//     reader.readAsDataURL(event.target.files[0]);
+	//     console.log(reader.result);
+	// });
 
 	//// end editor codes
 
