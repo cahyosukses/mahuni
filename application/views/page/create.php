@@ -50,12 +50,31 @@
 [textedit]{
 	cursor: pointer;
 }
+
+#edit_buttons{
+	background: #00baff;
+	font-size: 16px;
+	float:right;
+	color: #fff;
+}
+
+#edit_buttons i{
+	padding: 5px;
+	cursor: pointer;
+}
+
+#edit_buttons i:hover{
+	background: #ff005a;
+}
 </style>
 <?php $this->load->view('footer');?>
 
 <script>
 
 $(document).ready(function(){
+
+	// editor codes
+
 	$('#edit_template').hide();
 	$('#select_template img.template').on('click', function(){
 		var templat_id = $(this).attr('data-template-id');
@@ -83,10 +102,47 @@ $(document).ready(function(){
 
 	var ori_text = '';
 	$('#edit_template').on('click', '[textedit]', function(){
+
 		ori_text = $(this).html();
 
-		
+		// tukar html ni dengan input kalau he
+		var html = '';
+		if($(this).is('p')){
+			html = '<textarea style="width: 100%; height: 80px; box-sizing:border-box; border: 0px;">'+ori_text+'</textarea>';
+		}else{
+			html = '<input type="text" value="'+ori_text+'" style="width: 100%; box-sizing: border-box; border: 0px" />';
+		}
+
+		$(this).html(html);
+
+		// add small button to save - delete - copy
+		$(this).append('<span id="edit_buttons"><i class="glyphicon glyphicon-ok"></i><i class="glyphicon glyphicon-trash"></span>');
+
+		$(this).removeAttr('textedit');
+		$(this).attr('currentedit','');
 	});
+
+	$('#edit_template').on('click', '#edit_buttons i', function(){
+		console.log($(this).hasClass('glyphicon-ok'));
+		var new_text = '';
+		
+		var element = $(this).parent().parent();
+		if($(element).is('p')){
+			new_text = $(element).find('textarea').val();
+		}else{
+			new_text = $(element).find('input').val();
+		}
+
+		// $(this).parent().parent().html(new_text);
+		
+		$(element).html(new_text);
+		$(element).removeAttr('currentedit');
+		$(element).attr('textedit','');
+		old_border(element, current_border);
+	});
+
+	//// end editor codes
+
 });
 
 
