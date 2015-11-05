@@ -31,7 +31,7 @@
 					<div id="edit_template">
 							<h1 textedit>Ini adalah tajuk Sekadar Ada</h1>
 							<p textedit>Ini pula cuma details pendek pun sekadar ada</p>
-							<img imgedit src="http://placehold.it/500x200?text=img"/>
+							<img imgedit src="http://placehold.it/500x200?text=img" class="img-responsive"/>
 					</div>
 				</div>
 
@@ -144,7 +144,7 @@ var current_border = {};
 $(document).ready(function(){
 
 	// editor codes
-	$('#filemanager').modal('show');
+	// $('#filemanager').modal('show');
 
 	$('#edit_template').hide();
 	$('#select_template img.template').on('click', function(){
@@ -170,6 +170,9 @@ $(document).ready(function(){
 		old_border($(this), current_border);
 	});
 
+
+	var current_image;
+
 	$('#edit_template').on('click', '[imgedit]', function(){
 		clear_edit();
 
@@ -181,7 +184,7 @@ $(document).ready(function(){
 
 		// $(this).parent().append(imgupload);
 
-		var buttons = '<span id="img_buttons" style="z-index: 150; position: absolute; top: '+(pos['top']+height+2)+'px; left: '+(pos['left']+width - 86)+'px;"><i class="glyphicon glyphicon-ok"></i><i class="glyphicon glyphicon-open" data-toggle="modal" data-target="#mediamanager"></i><i class="glyphicon glyphicon-duplicate"></i><i class="glyphicon glyphicon-trash"></span>';
+		var buttons = '<span id="img_buttons" style="z-index: 150; position: absolute; top: '+(pos['top']+height+2)+'px; left: '+(pos['left']+width - 86)+'px;"><i class="glyphicon glyphicon-ok"></i><i class="glyphicon glyphicon-open" data-toggle="modal" data-target="#filemanager"></i><i class="glyphicon glyphicon-duplicate"></i><i class="glyphicon glyphicon-trash"></span>';
 
 		$(this).parent().append(buttons);
 
@@ -250,6 +253,12 @@ $(document).ready(function(){
 
 	});
 
+	$('.files-icon').on('click', '.icon', function(){
+		var src = $(this).attr('data-s3');
+		$('[currentedit]').attr('src', src);
+	});
+
+
 
 	// upload directly to s3
 	AWS.config.region = 'ap-southeast-1'; // 1. Enter your region
@@ -296,8 +305,6 @@ $(document).ready(function(){
 
 		$('.files-icon').prepend(img);
 
-
-
         // if (file) {
         //     results.innerHTML = '';
         //     var objKey = '' + file.name;
@@ -325,92 +332,6 @@ $(document).ready(function(){
         $('#'+upload_id).css('opacity', 1).attr('data-s3', s3path).removeClass('uploading');
      });
     // }, false);
-
-
-
-    function listObjs() {
-        var prefix = 'testing';
-        bucket.listObjects({
-            Prefix: prefix
-        }, function(err, data) {
-            if (err) {
-                results.innerHTML = 'ERROR: ' + err;
-            } else {
-                var objKeys = "";
-                data.Contents.forEach(function(obj) {
-                    objKeys += obj.Key + "<br>";
-                });
-                results.innerHTML = objKeys;
-            }
-        });
-    }
-
-
-	// // upload files
-	// $('#fileupload').on('click', function(){
-	// 	$('#fileinput').focus().trigger('click');
-	// });
-
-	// $('#fileinput').on('change', function(){
-		
-	// 	var reader = new FileReader();
-	//     reader.onload = function(){
-	//       // var output = document.getElementById('output');
-	//       // output.src = reader.result;
-	//       // console.log(reader);
-	//       var fileinput = document.getElementById('fileinput');
-	//       var file = fileinput.files[0];
-	// 	  // var filename = fileinput.files[0].name;
-
-	// 	  // console.log(file);
-
-	// 	  // check kat type, hanya image, pdf dan zip dengan saiz kurang daripada 10mb sahaja diterima untuk upload oi.
-
-	//       var src = reader.result;
-	//       var img = '<div class="icon" style="background: rgba(0,0,0,0.5) url('+src+') center center no-repeat; background-size: 100%;" data-s3=""><p>'+file.name+'</p></div>';
-
-	//       $('.files-icon').prepend(img);
-
-	//       // upload it
-	//       var formData = new FormData();
-	//       formData.append('image', file);
-
-	//       // console.log(formData);
-
-	//       // $.ajax({
-	//       // 			url:base_url('page/upload_file'),
-	//       // 			data:formData,
-	//       // 			contentType: false,
-	//       // 			processData: false,
-	//       // 			success: function(response){
-	//       // 				console.log(response);
-	//       // 			},
-	//       // 		});
-
-	// 		var oReq = new XMLHttpRequest();
-	// 		oReq.open("POST", base_url('page/upload_file'), true);
-	// 		oReq.onload = function(oEvent) {
-	// 			if (oReq.status == 200) {
-	// 			  console.log("Uploaded!");
-	// 			  console.log(oReq.response);
-	// 			} else {
-	// 			  console.log("Error " + oReq.status + " occurred when trying to upload your file.<br \/>");
-	// 			}
-	// 		};
-			
-	// 		oReq.onprogress = function(oEvent){
-	// 			console.log(oReq);
-	// 		}
-
-	// 		oReq.send(formData);
-	// 		ev.preventDefault();
-	//     };
-	    
-	//     reader.readAsDataURL(event.target.files[0]);
-	//     console.log(reader.result);
-	// });
-
-	//// end editor codes
 
 });
 
